@@ -1,0 +1,54 @@
+# --- macOS ---
+.DS_Store
+.localized
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.apdisk
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv
+venv/
+env/
+/bin/
+/include/
+/lib/
+/local/
+*.egg
+*.whl
+.pytest_cache/
+.mypy_cache/
+.tox/
+*.o
+*.a
+*.lo
+*.la
+
+# --- IDEs and Editors ---
+.idea/
+.vscode/
+.atom/
+.editorconfig
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*.swn
+
+# --- Large Files ---
+archive/
