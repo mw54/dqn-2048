@@ -24,10 +24,11 @@ class DuelingMLP(nn.Module):
         self.embed = MLP(input_size, embed_hidden, embed_size, activation)
         self.value = MLP(embed_size, value_hidden, 1, activation)
         self.advantage = MLP(embed_size, advantage_hidden, output_size, activation)
+        self.activation = getattr(nn, activation)()
 
     def forward(self, x):
         x = torch.flatten(x, 1, 2)
-        x = self.embed(x)
+        x = self.activation(self.embed(x))
         value = self.value(x)
         advantage = self.advantage(x)
         x = value + advantage - torch.mean(advantage, dim=1, keepdim=True)

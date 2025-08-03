@@ -54,7 +54,7 @@ agt = agent.Agent(
         "temperature": 10.0
     },
     batch_size=1024,
-    discount=0.999,
+    discount=0.99,
     temperature=1.0
 )
 
