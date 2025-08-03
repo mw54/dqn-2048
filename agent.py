@@ -37,6 +37,12 @@ class Buffer:
     def clear(self):
         self.position = 0
         self.size = 0
+
+        self.this_states.zero_()
+        self.actions.zero_()
+        self.next_states.zero_()
+        self.rewards.zero_()
+        self.terminals.zero_()
         self.priorities.zero_()
     
     def push(self, this_states:torch.Tensor, actions:torch.Tensor, next_states:torch.Tensor, rewards:torch.Tensor, terminals:torch.Tensor):
@@ -46,10 +52,10 @@ class Buffer:
         indices = torch.arange(self.position, self.position + size, dtype=torch.int, device=DEVICE) % self.buffer_size
         
         self.this_states[indices] = this_states.to(torch.float)
-        self.actions[indices] = actions
+        self.actions[indices] = actions.to(torch.bool)
         self.next_states[indices] = next_states.to(torch.float)
         self.rewards[indices] = rewards.to(torch.float)
-        self.terminals[indices] = terminals
+        self.terminals[indices] = terminals.to(torch.bool)
         self.priorities[indices] = 1.0
 
         self.position = (self.position + size) % self.buffer_size
@@ -69,7 +75,7 @@ class Buffer:
         self.priorities[indices] = self.priorities[indices]**self.alpha * priorities**(1 - self.alpha)
 
     def __len__(self):
-        return self.size
+        return self.buffer_size
     
     def __getitem__(self, indices:list[int]) -> tuple[torch.Tensor]:
         return (self.this_states[indices], self.actions[indices], self.next_states[indices], self.rewards[indices], self.terminals[indices])
