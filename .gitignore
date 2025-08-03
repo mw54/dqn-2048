@@ -52,3 +52,8 @@ env/
 
 # --- Large Files ---
 archive/
+
+# Cluster Scripts
+out
+err
+autopilot.sh

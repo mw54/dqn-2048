@@ -1,23 +1,8 @@
+import torch
+from tqdm import tqdm
 import environment
 import agent
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-
-def plot(losses:list[float], ylabel:str, path:str):
-    plt.figure(figsize=(10, 6), dpi=300)
-    plt.plot(losses)
-    plt.xlabel("Epoch")
-    plt.ylabel(ylabel)
-    plt.savefig(path)
-    plt.close()
-
-def hist(data:list[float], xlabel:str, path:str):
-    plt.figure(figsize=(10, 6), dpi=300)
-    plt.hist(data, bins=100, edgecolor="white", log=True)
-    plt.xlabel(xlabel)
-    plt.ylabel("Frequency")
-    plt.savefig(path)
-    plt.close()
+import utils
 
 def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_steps:int):
     agt.main.train()
@@ -27,15 +12,7 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
         loss = 0
         maxq = 0
         for _ in range(epoch_steps):
-            if any(env.terminals):
-                env.reset()
-            available_actions = env.actions.to(agent.DEVICE, copy=True)
-            this_states = env.boards.to(agent.DEVICE, copy=True)
-            actions = agt(this_states, available_actions).to(environment.DEVICE, copy=True)
-            rewards = env(actions).to(agent.DEVICE, copy=True)
-            next_states = env.boards.to(agent.DEVICE, copy=True)
-            terminals = env.terminals.to(agent.DEVICE, copy=True)
-            agt.update_buffer(this_states, actions.to(agent.DEVICE, copy=True), rewards, next_states, terminals)
+            utils.generate_samples(agt, env)
             l, q = agt.update_main()
             loss += l
             maxq += q
@@ -43,12 +20,11 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
         maxqs.append(maxq / epoch_steps)
         agt.update_target()
         agt.save("agent.pt", False)
-        plot(losses, "Loss", "losses.png")
-        plot(maxqs, "Max Q", "maxqs.png")
-        hist(agt.buffer.priorities, "Priority", "priority.png")
+        utils.plot(losses, "Loss", "losses.png")
+        utils.plot(maxqs, "Max Q", "maxqs.png")
+        utils.hist(agt.buffer.priorities, "Priority", "priority.png")
     return agt, losses, maxqs
 
-env = environment.BatchBoards(4, 64)
 agt = agent.Agent(
     network="DuelingMLP",
     network_args={
@@ -66,15 +42,18 @@ agt = agent.Agent(
         "amsgrad": True
     },
     buffer_args={
-        "buffer_size": 1048576,
+        "buffer_size": 1000000,
         "board_size": 4,
         "alpha": 0.6,
         "beta": 0.4,
         "temperature": 10.0
     },
-    batch_size=1024,
+    batch_size=1000,
     discount=0.99,
     temperature=100.0
 )
 
-agt, _, _ = online(agt, env, 4096, 1024)
+if __name__ == "__main__":
+    torch.set_num_threads(16)
+    env = environment.BatchBoards(4, 100)
+    agt, _, _ = online(agt, env, 10000, 100)
