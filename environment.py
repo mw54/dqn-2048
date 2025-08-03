@@ -55,12 +55,11 @@ class BatchBoards:
     
     def _merge_tiles(self) -> torch.Tensor:
         equal = torch.eq(self.boards[:,:,:-1], self.boards[:,:,1:])
-        rewards = torch.sum(self.boards, dim=(1, 2), dtype=torch.int)
         for i in range(self.board_size - 2):
             equal[:,:,i + 1] = (~equal[:,:,i]) & equal[:,:,i + 1]
         self.boards[:,:,:-1][equal] += self.boards[:,:,1:][equal]
-        rewards = torch.sum(self.boards, dim=(1, 2), dtype=torch.int) - rewards
         self.boards[:,:,1:][equal] = 0
+        rewards = torch.sum(self.boards[:, :, :-1] * equal, dim=(1, 2), dtype=torch.int)
         return rewards
 
     def _push_tiles(self):

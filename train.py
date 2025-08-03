@@ -42,7 +42,7 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
         losses.append(loss / epoch_steps)
         maxqs.append(maxq / epoch_steps)
         agt.update_target()
-        agt.save("agent.pt")
+        agt.save("agent.pt", False)
         plot(losses, "Loss", "losses.png")
         plot(maxqs, "Max Q", "maxqs.png")
         hist(agt.buffer.priorities, "Priority", "priority.png")
@@ -50,12 +50,15 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
 
 env = environment.BatchBoards(4, 64)
 agt = agent.Agent(
-    network="MLP",
+    network="DuelingMLP",
     network_args={
         "input_size": 16,
-        "hidden_sizes": [1024, 256],
+        "embed_hidden": [1024],
+        "embed_size": 1024,
+        "value_hidden": [256],
+        "advantage_hidden": [256],
         "output_size": 4,
-        "activation": "ReLU"
+        "activation": "SiLU"
     },
     optimizer="Adam",
     optimizer_args={
@@ -70,9 +73,8 @@ agt = agent.Agent(
         "temperature": 10.0
     },
     batch_size=1024,
-    discount=0.95,
-    temperature=10.0
+    discount=0.999,
+    temperature=100.0
 )
 
-# agt.load("checkpoints/1/agent.pt")
-agt, _, _ = online(agt, env, 4096, 1024)
+agt, _, _ = online(agt, env, 4096, 256)

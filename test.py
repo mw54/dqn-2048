@@ -31,12 +31,15 @@ def test(agt:agent.Agent, env:environment.BatchBoards, pause:bool):
 
 env = environment.BatchBoards(4, 1)
 agt = agent.Agent(
-    network="MLP",
+    network="DuelingMLP",
     network_args={
         "input_size": 16,
-        "hidden_sizes": [1024, 256],
+        "embed_hidden": [1024],
+        "embed_size": 1024,
+        "value_hidden": [256],
+        "advantage_hidden": [256],
         "output_size": 4,
-        "activation": "ReLU"
+        "activation": "SiLU"
     },
     optimizer="Adam",
     optimizer_args={
@@ -51,7 +54,7 @@ agt = agent.Agent(
         "temperature": 10.0
     },
     batch_size=1024,
-    discount=0.9,
+    discount=0.999,
     temperature=1.0
 )
 
