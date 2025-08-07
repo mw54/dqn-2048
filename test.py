@@ -1,7 +1,6 @@
 import torch
 import environment
 import agent
-import utils
 import train
 
 def action_decode(actions:torch.Tensor) -> list[str]:
