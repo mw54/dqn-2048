@@ -20,7 +20,6 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
         maxqs.append(maxq / epoch_steps)
         agt.update_target()
         agt.save("agent.pt", False)
-        agt.temperature = max(1.0, agt.temperature * 0.999)
         utils.plot(losses, "Loss", "losses.png")
         utils.plot(maxqs, "Max Q", "maxqs.png")
         utils.hist(agt.buffer.priorities, "Priority", "priority.png")
@@ -54,5 +53,4 @@ agt = agent.Agent(
 if __name__ == "__main__":
     torch.set_num_threads(16)
     env = environment.BatchBoards(4, 100)
-    agt.load("checkpoints/1/agent.pt", False)
     agt, _, _ = online(agt, env, 10000, 100)
