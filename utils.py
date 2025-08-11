@@ -21,9 +21,8 @@ def hist(data:list[float], xlabel:str, path:str):
 def generate_samples(agt:agent.Agent, env:environment.BatchBoards):
     if any(env.terminals):
         env.reset()
-    available_actions = env.actions.to(agent.DEVICE, copy=True)
     this_states = env.boards.to(agent.DEVICE, copy=True)
-    actions = agt(this_states, available_actions).to(environment.DEVICE, copy=True)
+    actions = agt(this_states).to(environment.DEVICE, copy=True)
     rewards = env(actions).to(agent.DEVICE, copy=True)
     next_states = env.boards.to(agent.DEVICE, copy=True)
     terminals = env.terminals.to(agent.DEVICE, copy=True)

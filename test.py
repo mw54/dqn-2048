@@ -1,4 +1,5 @@
 import torch
+import tabulate
 import environment
 import agent
 import train
@@ -16,18 +17,22 @@ def test(agt:agent.Agent, env:environment.BatchBoards, pause:bool):
     agt.main.eval()
     print(env)
     while not all(env.terminals):
-        available_actions = env.actions.to(agent.DEVICE, copy=True)
         this_states = env.boards.to(agent.DEVICE, copy=True)
-        actions, q, p = agt(this_states, available_actions, pq=True)
+        actions, q, p = agt(this_states, pq=True)
         actions = actions.to(environment.DEVICE, copy=True)
         rewards = env(actions).tolist()
 
-        print(f"Q values: {[round(val, 2) for val in q.tolist()[0]]}")
-        print(f"P values: {[round(val, 4) for val in p.tolist()[0]]}")
+        print(tabulate.tabulate(
+            [q[0].tolist(), p[0].tolist()],
+            headers=["left", "right", "up", "down"],
+            showindex=["Q values", "P values"],
+            floatfmt=".2f"
+        ))
+
         if pause:
             input()
-        print(f"Action: {action_decode(actions)}")
-        print(f"Reward: {rewards}")
+        print(f"Action: {action_decode(actions)[0]}")
+        print(f"Reward: {rewards[0]}")
         print(env)
 
 env = environment.BatchBoards(4, 1)

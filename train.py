@@ -51,7 +51,7 @@ agt = agent.Agent(
 )
 
 if __name__ == "__main__":
-    torch.set_num_threads(16)
+    torch.set_num_threads(4)
     env = environment.BatchBoards(4, 100)
-    agt.load("checkpoints/2/agent.pt", False)
+    # agt.load("checkpoints/2/agent.pt", False)
     agt, _, _ = online(agt, env, 2000, 1000)

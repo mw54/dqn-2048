@@ -183,10 +183,9 @@ class Agent:
         rewards = transform_rewards(rewards, terminals)
         self.buffer.push(this_states, actions, next_states, rewards, terminals)
 
-    def __call__(self, this_states:torch.Tensor, available_actions:torch.Tensor, pq:bool=False) -> torch.Tensor:
+    def __call__(self, this_states:torch.Tensor, pq:bool=False) -> torch.Tensor:
         this_states = transform_states(this_states)
         q = self.main(this_states)
-        q[~available_actions] = -torch.inf
         p = torch.softmax(q / self.temperature, dim=1)
         indices = torch.multinomial(p, num_samples=1).squeeze(1)
         actions = torch.stack([indices // 2, indices % 2], dim=1).to(torch.bool)
