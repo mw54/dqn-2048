@@ -8,7 +8,7 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
     agt.main.train()
     losses = list()
     maxqs = list()
-    for _ in tqdm(range(num_epochs), desc=f"Epoch"):
+    for epoch in tqdm(range(num_epochs), desc=f"Epoch"):
         loss = 0
         maxq = 0
         for _ in range(epoch_steps):
@@ -20,16 +20,18 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
         maxqs.append(maxq / epoch_steps)
         agt.update_target()
         agt.save("agent.pt", False)
-        agt.temperature = max(agt.temperature * 0.996, 10.0)
+        agt.temperature = 90.0 / (1 + torch.e**(0.002 * (epoch - 4000))) + 10.0
         utils.plot(losses, "Loss", "losses.png")
         utils.plot(maxqs, "Max Q", "maxqs.png")
         utils.hist(agt.buffer.priorities, "Priority", "priority.png")
     return agt, losses, maxqs
 
 agt = agent.Agent(
-    network="MLP",
+    network="ConvNet",
     network_args={
+        "input_channel": 1,
         "input_size": 16,
+        "hidden_channels": [16, 16],
         "hidden_sizes": [64],
         "output_size": 4,
         "activation": "PReLU"
@@ -47,12 +49,11 @@ agt = agent.Agent(
         "temperature": 10.0
     },
     batch_size=1000,
-    discount=0.999,
-    temperature=1000.0
+    discount=0.99,
+    temperature=100.0
 )
 
 if __name__ == "__main__":
     torch.set_num_threads(16)
     env = environment.BatchBoards(4, 100)
-    agt.load("checkpoints/1/agent.pt", False)
-    agt, _, _ = online(agt, env, 10000, 1000)
+    agt, _, _ = online(agt, env, 10000, 100)
