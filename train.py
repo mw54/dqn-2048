@@ -20,6 +20,7 @@ def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_s
         maxqs.append(maxq / epoch_steps)
         agt.update_target()
         agt.save("agent.pt", False)
+        agt.temperature = max(agt.temperature * 0.996, 10.0)
         utils.plot(losses, "Loss", "losses.png")
         utils.plot(maxqs, "Max Q", "maxqs.png")
         utils.hist(agt.buffer.priorities, "Priority", "priority.png")
@@ -29,9 +30,9 @@ agt = agent.Agent(
     network="MLP",
     network_args={
         "input_size": 16,
-        "hidden_sizes": [1024, 256],
+        "hidden_sizes": [64],
         "output_size": 4,
-        "activation": "SiLU"
+        "activation": "PReLU"
     },
     optimizer="Adam",
     optimizer_args={
@@ -46,11 +47,12 @@ agt = agent.Agent(
         "temperature": 10.0
     },
     batch_size=1000,
-    discount=0.99,
-    temperature=100.0
+    discount=0.999,
+    temperature=1000.0
 )
 
 if __name__ == "__main__":
     torch.set_num_threads(16)
     env = environment.BatchBoards(4, 100)
-    agt, _, _ = online(agt, env, 10000, 100)
+    agt.load("checkpoints/1/agent.pt", False)
+    agt, _, _ = online(agt, env, 10000, 1000)
