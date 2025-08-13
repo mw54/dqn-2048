@@ -99,7 +99,7 @@ class BatchBoards:
                 outputs += "\n"
                 outputs += ("+" + "-" * width) * self.board_size + "+\n"
             if self.terminals[i]:
-                outputs += "GAME OVER!\n"
+                outputs += "INVALID ACTION\n"
         return outputs
 
 if __name__ == "__main__":
@@ -109,8 +109,8 @@ if __name__ == "__main__":
     
     # Play a few moves
     while not torch.all(env.terminals):
-        actions = input("Actions: ")
-        actions = action_encode(actions.split())
+        actions = input("Action: ")
+        actions = action_encode([actions] * env.boards.size(0))
         rewards = env(actions)
         print(f"Rewards: {rewards.tolist()}")
         print(env)

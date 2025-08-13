@@ -29,7 +29,7 @@ agt = agent.Agent(
     network="MLP",
     network_args={
         "input_size": 16,
-        "hidden_sizes": [1024, 1024],
+        "hidden_sizes": [1024, 256],
         "output_size": 4,
         "activation": "SiLU"
     },
@@ -47,11 +47,10 @@ agt = agent.Agent(
     },
     batch_size=1000,
     discount=0.99,
-    temperature=10.0
+    temperature=100.0
 )
 
 if __name__ == "__main__":
-    torch.set_num_threads(4)
+    torch.set_num_threads(16)
     env = environment.BatchBoards(4, 100)
-    # agt.load("checkpoints/2/agent.pt", False)
-    agt, _, _ = online(agt, env, 2000, 1000)
+    agt, _, _ = online(agt, env, 10000, 100)
