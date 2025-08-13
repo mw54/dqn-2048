@@ -1,30 +1,30 @@
 import torch
 from tqdm import tqdm
-import environment
 import agent
+import buffers
+import environment
 import utils
 
-def online(agt:agent.Agent, env:environment.BatchBoards, num_epochs:int, epoch_steps:int):
+def online(agt:agent.Agent, buf:buffers.Buffer, env:environment.BatchBoards, num_epochs:int, epoch_steps:int):
     agt.main.train()
-    losses = list()
-    maxqs = list()
+    losses = utils.History()
+    maxqs = utils.History()
     for epoch in tqdm(range(num_epochs), desc=f"Epoch"):
-        loss = 0
-        maxq = 0
         for _ in range(epoch_steps):
-            utils.generate_samples(agt, env)
-            l, q = agt.update_main()
-            loss += l
-            maxq += q
-        losses.append(loss / epoch_steps)
-        maxqs.append(maxq / epoch_steps)
-        agt.update_target()
-        agt.save("agent.pt", False)
+            utils.generate_samples(agt, env, buf)
+            l, q = utils.step_main(agt, buf)
+            losses.stage(l)
+            maxqs.stage(q)
+        agt.update()
+        agt.save("agent.pt")
+        buf.save("buffer.pt")
+        losses.commit()
+        maxqs.commit()
+        utils.plot(losses.data, "Loss", "losses.png")
+        utils.plot(maxqs.data, "Max Q", "maxqs.png")
+        utils.hist(buf.priorities.cpu(), "Priority", "priority.png")
         agt.temperature = 90.0 / (1 + torch.e**(0.002 * (epoch - 4000))) + 10.0
-        utils.plot(losses, "Loss", "losses.png")
-        utils.plot(maxqs, "Max Q", "maxqs.png")
-        utils.hist(agt.buffer.priorities, "Priority", "priority.png")
-    return agt, losses, maxqs
+    return agt
 
 agt = agent.Agent(
     network="ConvNet",
@@ -41,19 +41,22 @@ agt = agent.Agent(
         "lr": 1e-3,
         "amsgrad": True
     },
-    buffer_args={
-        "buffer_size": 1000000,
-        "board_size": 4,
-        "alpha": 0.6,
-        "beta": 0.4,
-        "temperature": 10.0
-    },
     batch_size=1000,
     discount=0.99,
     temperature=100.0
 )
 
+buf = buffers.Buffer(
+    buffer_size=1000000,
+    board_size=4,
+    alpha=0.6,
+    beta=0.4,
+    temperature=4.0
+)
+
 if __name__ == "__main__":
     torch.set_num_threads(16)
     env = environment.BatchBoards(4, 100)
-    agt, _, _ = online(agt, env, 10000, 100)
+    agt.load("agent.pt")
+    buf.load("buffer.pt")
+    agt = online(agt, buf, env, 10000, 100)

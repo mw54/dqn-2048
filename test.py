@@ -17,9 +17,8 @@ def test(agt:agent.Agent, env:environment.BatchBoards, pause:bool):
     agt.main.eval()
     print(env)
     while not all(env.terminals):
-        this_states = env.boards.to(agent.DEVICE, copy=True)
+        this_states = torch.clone(env.boards)
         actions, q, p = agt(this_states, pq=True)
-        actions = actions.to(environment.DEVICE, copy=True)
         rewards = env(actions).tolist()
 
         print(tabulate.tabulate(
@@ -36,6 +35,6 @@ def test(agt:agent.Agent, env:environment.BatchBoards, pause:bool):
         print(env)
 
 env = environment.BatchBoards(4, 1)
-train.agt.load("agent.pt", True)
+train.agt.load("agent.pt")
 train.agt.temperature = 1.0
 test(train.agt, env, True)

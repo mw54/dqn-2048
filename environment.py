@@ -19,6 +19,25 @@ class BatchBoards:
         self.terminals = torch.ones(batch_size, dtype=torch.bool, device=DEVICE)
         self.reset()
 
+    def save(self, path:str) -> dict[str,torch.Tensor]:
+        state_dict = {
+            "board_size": self.board_size,
+            "batch_size": self.batch_size,
+            "boards": self.boards,
+            "scores": self.scores,
+            "terminals": self.terminals
+        }
+        torch.save(state_dict, path)
+    
+    def load(self, path:str):
+        state_dict = torch.load(path, weights_only=False, map_location="cpu")
+        self.board_size = state_dict["board_size"]
+        self.batch_size = state_dict["batch_size"]
+        
+        self.boards = state_dict["boards"].to(DEVICE)
+        self.scores = state_dict["scores"].to(DEVICE)
+        self.terminals = state_dict["terminals"].to(DEVICE)
+
     def reset(self):
         self.boards[self.terminals] = 0
         self.scores[self.terminals] = 0
@@ -74,8 +93,9 @@ class BatchBoards:
         return rewards
                 
     def __call__(self, actions:torch.Tensor) -> torch.Tensor:
-        if actions.shape != (self.batch_size, 2) or actions.dtype != torch.bool:
-            raise ValueError("incorrect action tensor format")
+        assert actions.shape == (self.batch_size, 2)
+        actions = actions.to(DEVICE, torch.bool)
+
         rewards = self._update_boards(actions)
         self._add_tiles()
         self.scores += rewards
