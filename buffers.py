@@ -12,7 +12,6 @@ class Buffer:
         self.temperature = temperature
         self.position = 0
         self.size = 0
-        self.max_priority = 1.0
         
         self.this_states = torch.zeros((buffer_size, board_size, board_size), dtype=torch.int, device=DEVICE)
         self.actions = torch.zeros((buffer_size, 2), dtype=torch.bool, device=DEVICE)
@@ -27,7 +26,6 @@ class Buffer:
             "board_size": self.board_size,
             "position": self.position,
             "size": self.size,
-            "max_priority": self.max_priority,
             "this_states": self.this_states,
             "actions": self.actions,
             "next_states": self.next_states,
@@ -43,7 +41,6 @@ class Buffer:
         self.board_size = state_dict["board_size"]
         self.position = state_dict["position"]
         self.size = state_dict["size"]
-        self.max_priority = state_dict["max_priority"]
         
         self.this_states = state_dict["this_states"].to(DEVICE)
         self.actions = state_dict["actions"].to(DEVICE)
@@ -55,7 +52,6 @@ class Buffer:
     def clear(self):
         self.position = 0
         self.size = 0
-        self.max_priority = 1.0
 
         self.this_states.zero_()
         self.actions.zero_()
@@ -75,7 +71,7 @@ class Buffer:
         self.next_states[indices] = next_states.to(DEVICE, torch.int)
         self.rewards[indices] = rewards.to(DEVICE, torch.int)
         self.terminals[indices] = terminals.to(DEVICE, torch.bool)
-        self.priorities[indices] = self.max_priority
+        self.priorities[indices] = 1.0
 
         self.position = (self.position + size) % self.buffer_size
         self.size = min(self.buffer_size, self.size + size)
@@ -93,9 +89,8 @@ class Buffer:
         errors = errors.to(DEVICE, torch.float)
 
         gamma = torch.mean(errors, dtype=torch.float)
-        priorities = torch.exp(errors / (self.temperature * gamma))
+        priorities = torch.exp(-gamma / (self.temperature * errors))
         self.priorities[indices] = self.priorities[indices]**self.alpha * priorities**(1 - self.alpha)
-        self.max_priority = torch.max(self.priorities)
 
     def __len__(self):
         return self.buffer_size

@@ -57,6 +57,6 @@ buf = buffers.Buffer(
 if __name__ == "__main__":
     torch.set_num_threads(16)
     env = environment.BatchBoards(4, 100)
-    agt.load("agent.pt")
-    buf.load("buffer.pt")
+    # agt.load("agent.pt")
+    # buf.load("buffer.pt")
     agt = online(agt, buf, env, 10000, 100)

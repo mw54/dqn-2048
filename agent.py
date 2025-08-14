@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 import networks
 
-DEVICE = torch.device("mps")
+DEVICE = torch.device("cpu")
 torch.set_grad_enabled(False)
 
 def transform_states(states:torch.Tensor) -> torch.Tensor:
