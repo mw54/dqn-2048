@@ -52,7 +52,7 @@ env/
 
 # --- Large Files ---
 archive/
-checkpoints/*/*.pt
+buffer.pt
 
 # Cluster Scripts
 out

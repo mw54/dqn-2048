@@ -35,6 +35,6 @@ def test(agt:agent.Agent, env:environment.BatchBoards, pause:bool):
         print(env)
 
 env = environment.BatchBoards(4, 1)
-train.agt.load("agent.pt")
+train.agt.load("checkpoints/1/agent.pt")
 train.agt.temperature = 1.0
 test(train.agt, env, True)
