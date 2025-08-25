@@ -23,7 +23,7 @@ def online(agt:agent.Agent, buf:buffers.Buffer, env:environment.BatchBoards, num
         utils.plot(losses.data, "Loss", "losses.png")
         utils.plot(maxqs.data, "Max Q", "maxqs.png")
         utils.hist(buf.priorities.cpu(), "Priority", "priority.png")
-        agt.temperature = 90.0 / (1 + torch.e**(0.002 * (epoch - 4000))) + 10.0
+        agt.temperature = 990.0 / (1 + torch.e**(0.0015 * (epoch - 5000))) + 10.0
     return agt
 
 agt = agent.Agent(
@@ -31,19 +31,19 @@ agt = agent.Agent(
     network_args={
         "input_channel": 1,
         "input_size": 16,
-        "hidden_channels": [16, 16],
-        "hidden_sizes": [64],
+        "hidden_channels": [4, 16, 64],
+        "hidden_sizes": [256, 64],
         "output_size": 4,
-        "activation": "PReLU"
+        "activation": "ReLU"
     },
     optimizer="Adam",
     optimizer_args={
-        "lr": 1e-3,
+        "lr": 1e-4,
         "amsgrad": True
     },
     batch_size=1000,
     discount=0.99,
-    temperature=100.0
+    temperature=1000.0
 )
 
 buf = buffers.Buffer(
@@ -55,8 +55,8 @@ buf = buffers.Buffer(
 )
 
 if __name__ == "__main__":
-    torch.set_num_threads(16)
+    torch.set_num_threads(64)
     env = environment.BatchBoards(4, 100)
     # agt.load("agent.pt")
     # buf.load("buffer.pt")
-    agt = online(agt, buf, env, 10000, 100)
+    agt = online(agt, buf, env, 10000, 1000)
