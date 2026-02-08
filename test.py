@@ -2,15 +2,13 @@ import torch
 import tabulate
 import environment
 import agent
-import train
+import constants
 
 def action_decode(actions:torch.Tensor) -> list[str]:
-    assert actions.size(1) == 2
     mapping = {0: "left", 1: "right", 2: "up", 3: "down"}
-    indices = (actions[:,0] * 2 + actions[:,1]).tolist()
     decoded = list()
-    for index in indices:
-        decoded.append(mapping[index])
+    for action in actions.tolist():
+        decoded.append(mapping[action])
     return decoded
 
 def test(agt:agent.Agent, env:environment.BatchBoards, pause:bool):
@@ -35,6 +33,26 @@ def test(agt:agent.Agent, env:environment.BatchBoards, pause:bool):
         print(env)
 
 env = environment.BatchBoards(4, 1)
-train.agt.load("agent.pt")
-train.agt.temperature = 10.0
-test(train.agt, env, True)
+agt = agent.Agent(**constants.agent_params)
+agt.load("agent.pt")
+pol = agt.policy.to(environment.DEVICE)
+pol.eval()
+
+print(env)
+while not all(env.terminals):
+    this_states = torch.clone(env.boards)
+    q1, q2 = pol(this_states)
+
+    print(tabulate.tabulate(
+        [q1[0].tolist(), q2[0].tolist()],
+        headers=["left", "right", "up", "down"],
+        showindex=["Q1", "Q2"],
+        floatfmt=".2f"
+    ))
+
+    input()
+    actions = pol.act(this_states, stochastic=False)
+    rewards = env(actions).tolist()
+    print(f"Action: {action_decode(actions)[0]}")
+    print(f"Reward: {rewards[0]}")
+    print(env)

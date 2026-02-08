@@ -4,11 +4,11 @@ DEVICE = torch.device("cpu")
 torch.set_grad_enabled(False)
 
 def action_encode(text:list[str]) -> torch.Tensor:
-    mapping = {"left": [0, 0], "right": [0, 1], "up": [1, 0], "down": [1, 1]}
+    mapping = {"left": 0, "right": 1, "up": 2, "down": 3}
     encoded = list()
     for word in text:
         encoded.append(mapping[word])
-    return torch.tensor(encoded, dtype=torch.bool, device=DEVICE)
+    return torch.tensor(encoded, dtype=torch.int, device=DEVICE)
 
 class BatchBoards:
     def __init__(self, board_size:int=4, batch_size:int=3):
@@ -76,25 +76,27 @@ class BatchBoards:
         range_index = torch.arange(self.board_size, device=DEVICE)[None, None, :]
         indices = torch.lt(range_index, tile_counts)
         self.boards[indices] = self.boards[mask]
-        self.boards[(~indices) & mask] = 0
+        self.boards[~indices] = 0
+        displacements = torch.sum(mask & (~indices), dim=(1, 2), dtype=torch.int)
+        return displacements
 
     def _update_boards(self, actions:torch.Tensor) -> torch.Tensor:
-        backup = torch.clone(self.boards)
-        trans_mask = actions[:,0]
-        flip_mask = actions[:,1]
+        trans_mask = (actions == 2) + (actions == 3)
+        flip_mask = (actions == 1) + (actions == 3)
         self.boards[trans_mask] = torch.transpose(self.boards[trans_mask], 1, 2)
         self.boards[flip_mask] = torch.flip(self.boards[flip_mask], dims=[2])
-        self._push_tiles()
+        displacements = self._push_tiles()
         rewards = self._merge_tiles()
-        self._push_tiles()
+        displacements += self._push_tiles()
         self.boards[flip_mask] = torch.flip(self.boards[flip_mask], dims=[2])
         self.boards[trans_mask] = torch.transpose(self.boards[trans_mask], 1, 2)
-        self.terminals = torch.all(torch.eq(backup, self.boards), dim=(1, 2))
+        self.terminals = (displacements == 0) & (rewards == 0)
         return rewards
                 
     def __call__(self, actions:torch.Tensor) -> torch.Tensor:
-        assert actions.shape == (self.batch_size, 2)
-        actions = actions.to(DEVICE, torch.bool)
+        assert actions.shape == (self.batch_size,)
+        assert torch.all(actions >= 0) and torch.all(actions <= 3)
+        actions = actions.to(DEVICE, torch.long)
 
         rewards = self._update_boards(actions)
         self._add_tiles()
