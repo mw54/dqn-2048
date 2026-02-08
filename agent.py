@@ -45,13 +45,13 @@ class Agent:
         weights = weights.to(DEVICE, torch.float)
         
         v, h = self.target.evaluate(next_states)
-        y = rewards + self.discount * (v - h) * (~terminals)
+        y = rewards + self.discount * (v + h) * (~terminals)
         
         with torch.enable_grad():
             self.optimizer.zero_grad()
             q1, q2 = self.policy(this_states)
-            q1 = torch.gather(q1, dim=1, index=actions[None,:])[0]
-            q2 = torch.gather(q2, dim=1, index=actions[None,:])[0]
+            q1 = torch.gather(q1, dim=1, index=actions[:,None])[:,0]
+            q2 = torch.gather(q2, dim=1, index=actions[:,None])[:,0]
             errors = (y - q1)**2 + (y - q2)**2
             loss = torch.dot(weights, errors)
             loss.backward()

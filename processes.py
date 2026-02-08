@@ -55,7 +55,7 @@ def optimize(data_queue:mp.Queue, model_queue:mp.Queue, agent_params:dict[str,],
         while not data_queue.empty():
             data = data_queue.get()
             buf.push(*data)
-            
+        
         batch, weights, indices = buf.sample(agt.batch_size)
         errors, q1, q2, h = agt.step(*batch, weights=weights)
         buf.update(indices, errors)

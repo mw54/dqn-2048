@@ -1,8 +1,8 @@
 policy_params = {
     "model_channels": 144,
     "seq_len": 16,
-    "num_heads": 3,
-    "num_layers": 6,
+    "num_heads": 6,
+    "num_layers": 4,
     "dropout": 0.1,
     "temperature": 64.0
 }
@@ -20,7 +20,7 @@ agent_params = {
 
 environment_params = {
     "board_size": 4,
-    "batch_size": 256
+    "batch_size": 64
 }
 
 buffer_params = {
@@ -43,7 +43,7 @@ optimize_params = {
     "buffer_params": buffer_params,
     "total_steps": 1048576,
     "update_interval": 64,
-    "plot_interval": 1024,
-    "save_interval": 64,
+    "plot_interval": 256,
+    "save_interval": 1024,
     "output_path": "."
 }

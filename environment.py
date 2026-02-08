@@ -1,6 +1,6 @@
 import torch
 
-DEVICE = torch.device("cpu")
+DEVICE = torch.device("mps")
 torch.set_grad_enabled(False)
 
 def action_encode(text:list[str]) -> torch.Tensor:
