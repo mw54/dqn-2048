@@ -4,14 +4,14 @@ policy_params = {
     "num_heads": 4,
     "num_layers": 3,
     "dropout": 0.0,
-    "temperature": 64.0
+    "temperature": 16.0
 }
 
 agent_params = {
     "policy_params": policy_params,
     "optimizer_params": {
-        "lr": 3e-4,
-        "weight_decay": 1e-4
+        "lr": 1e-3,
+        "weight_decay": 1e-6
     },
     "batch_size": 1024,
     "discount": 0.99,

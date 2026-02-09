@@ -43,8 +43,6 @@ class Agent:
         rewards = rewards.to(DEVICE, torch.float)
         terminals = terminals.to(DEVICE, torch.bool)
         weights = weights.to(DEVICE, torch.float)
-
-        rewards = rewards.masked_fill(rewards <= 0.0, 1.0).log2()
         
         v, h = self.target.evaluate(next_states)
         y = rewards + self.discount * (v + h) * (~terminals)

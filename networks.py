@@ -7,6 +7,11 @@ class QNet(nn.Module):
         super(QNet, self).__init__()
         self.embed = nn.Linear(input_channels, model_channels, bias=False)
         self.encode = nn.Linear(seq_len, model_channels, bias=False)
+        self.mlp = nn.Sequential(
+            nn.Linear(model_channels, 4 * model_channels),
+            nn.GELU(),
+            nn.Linear(4 * model_channels, model_channels)
+        )
 
         layer = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
         self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
@@ -22,7 +27,7 @@ class QNet(nn.Module):
         )
 
     def forward(self, x:torch.Tensor, p:torch.Tensor):
-        x = self.embed(x) + self.encode(p)
+        x = self.mlp(self.embed(x) + self.encode(p))
         x = self.transformer(x)
         x = self.output(x).flatten(1, -1)
         x = self.value(x)
