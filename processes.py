@@ -24,6 +24,7 @@ class History:
             plt.plot(val)
             plt.xlabel("step")
             plt.ylabel(key)
+            plt.tight_layout()
             plt.savefig(f"{path}/{key}.png")
             plt.close()
     
@@ -52,7 +53,7 @@ def optimize(data_queue:mp.Queue, model_queue:mp.Queue, agent_params:dict[str,],
         data = data_queue.get()
         buf.push(*data)
     for i in tqdm(range(total_steps), desc="step"):
-        while not data_queue.empty():
+        if not data_queue.empty():
             data = data_queue.get()
             buf.push(*data)
         

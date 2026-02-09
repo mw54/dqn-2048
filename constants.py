@@ -1,9 +1,9 @@
 policy_params = {
-    "model_channels": 144,
+    "model_channels": 96,
     "seq_len": 16,
-    "num_heads": 6,
-    "num_layers": 4,
-    "dropout": 0.1,
+    "num_heads": 4,
+    "num_layers": 3,
+    "dropout": 0.0,
     "temperature": 64.0
 }
 
@@ -20,7 +20,7 @@ agent_params = {
 
 environment_params = {
     "board_size": 4,
-    "batch_size": 64
+    "batch_size": 256
 }
 
 buffer_params = {
@@ -31,7 +31,7 @@ buffer_params = {
     "temperature": 4.0
 }
 
-queue_size = 4096
+queue_size = 64
 
 collect_params = {
     "environment_params": environment_params,
