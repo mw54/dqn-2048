@@ -10,12 +10,12 @@ policy_params = {
 agent_params = {
     "policy_params": policy_params,
     "optimizer_params": {
-        "lr": 1e-3,
-        "weight_decay": 1e-6
+        "lr": 3e-4,
+        "weight_decay": 0.0
     },
     "batch_size": 1024,
     "discount": 0.99,
-    "polyak": 0.01
+    "polyak": 0.001
 }
 
 environment_params = {
