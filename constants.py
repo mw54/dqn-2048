@@ -15,12 +15,12 @@ agent_params = {
     },
     "batch_size": 1024,
     "discount": 0.999,
-    "polyak": 5e-3
+    "polyak": 0.01
 }
 
 environment_params = {
     "board_size": 4,
-    "batch_size": 256
+    "batch_size": 1024
 }
 
 buffer_params = {

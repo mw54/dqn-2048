@@ -18,7 +18,7 @@ python main.py
 ```
 
 Training runs with:
-- 256 parallel environments for data collection
+- 1024 parallel environments for data collection
 - 1024 batch size for optimization
 - Model checkpoints saved every 1024 steps
 
@@ -58,7 +58,7 @@ constants.py    # Hyperparameters
 |-----------|-------|
 | Learning rate | 1e-3 |
 | Discount (γ) | 0.999 |
-| Polyak (τ) | 5e-3 |
+| Polyak (τ) | 0.01 |
 | Batch size | 1024 |
 | Buffer size | 1M |
 | Temperature | 16.0 |

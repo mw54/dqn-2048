@@ -9,9 +9,9 @@ class Agent:
     def __init__(self, policy_params:dict, optimizer_params:dict, batch_size:int, discount:float, polyak:float, path:str=None):
         self.policy = networks.Policy(**policy_params).to(DEVICE)
         self.target = networks.Policy(**policy_params).to(DEVICE)
-        self.optimizer = optim.AdamW(self.policy.parameters(), **optimizer_params)
         self.target.requires_grad_(False)
         self.target.load_state_dict(self.policy.state_dict())
+        self.optimizer = optim.AdamW(self.policy.parameters(), **optimizer_params)
 
         self.batch_size = batch_size
         self.discount = discount
