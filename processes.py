@@ -53,7 +53,7 @@ def optimize(data_queue:mp.Queue, model_queue:mp.Queue, agent_params:dict[str,],
         data = data_queue.get()
         buf.push(*data)
     for i in tqdm(range(total_steps), desc="step"):
-        if not data_queue.empty():
+        while not data_queue.empty():
             data = data_queue.get()
             buf.push(*data)
         

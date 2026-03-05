@@ -31,7 +31,7 @@ buffer_params = {
     "temperature": 4.0
 }
 
-queue_size = 1024
+queue_size = 4
 
 collect_params = {
     "environment_params": environment_params,
