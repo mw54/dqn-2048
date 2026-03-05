@@ -4,7 +4,7 @@ policy_params = {
     "num_heads": 4,
     "num_layers": 3,
     "dropout": 0.0,
-    "temperature": 16.0
+    "temperature": 1.0
 }
 
 agent_params = {

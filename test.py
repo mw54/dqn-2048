@@ -31,6 +31,7 @@ while not all(env.terminals):
 
     actions = pol.act(this_states, stochastic=False)
     rewards = env(actions).tolist()
+    print()
     print(f"Action: {action_decode(actions)[0]}")
     print(f"Reward: {rewards[0]}")
     print(env)
