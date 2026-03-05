@@ -10,12 +10,12 @@ policy_params = {
 agent_params = {
     "policy_params": policy_params,
     "optimizer_params": {
-        "lr": 3e-4,
-        "weight_decay": 0.0
+        "lr": 1e-3,
+        "weight_decay": 1e-3
     },
     "batch_size": 1024,
-    "discount": 0.99,
-    "polyak": 0.001
+    "discount": 0.999,
+    "polyak": 5e-3
 }
 
 environment_params = {
@@ -31,7 +31,7 @@ buffer_params = {
     "temperature": 4.0
 }
 
-queue_size = 64
+queue_size = 1024
 
 collect_params = {
     "environment_params": environment_params,

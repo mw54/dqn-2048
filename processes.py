@@ -58,9 +58,9 @@ def optimize(data_queue:mp.Queue, model_queue:mp.Queue, agent_params:dict[str,],
             buf.push(*data)
         
         batch, weights, indices = buf.sample(agt.batch_size)
-        errors, q1, q2, h = agt.step(*batch, weights=weights)
+        values, errors = agt.step(*batch, weights=weights)
         buf.update(indices, errors)
-        history.register({"error": errors.mean().item(), "q1": q1.mean().item(), "q2": q2.mean().item(), "entropy": h.mean().item()})
+        history.register({"value": values.mean().item(), "error": errors.mean().item()})
         
         if (1 + 1) % update_interval == 0:
             model_queue.put(agt.policy.state_dict())

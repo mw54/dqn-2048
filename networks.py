@@ -8,6 +8,7 @@ class QNet(nn.Module):
         self.embed = nn.Linear(input_channels, model_channels, bias=False)
         self.encode = nn.Linear(seq_len, model_channels, bias=False)
         self.mlp = nn.Sequential(
+            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, model_channels)
@@ -16,12 +17,16 @@ class QNet(nn.Module):
         layer = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
         self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
 
-        self.output = nn.Sequential(
-            nn.Linear(model_channels, 2 * model_channels // seq_len),
-            nn.GELU()
+        self.gate = nn.Sequential(
+            nn.LayerNorm(model_channels),
+            nn.Linear(model_channels, 4 * model_channels),
+            nn.GELU(),
+            nn.Linear(4 * model_channels, num_heads),
+            nn.Sigmoid()
         )
         self.value = nn.Sequential(
-            nn.Linear(2 * model_channels, 4 * model_channels),
+            nn.LayerNorm(num_heads * model_channels),
+            nn.Linear(num_heads * model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, output_channels)
         )
@@ -29,7 +34,7 @@ class QNet(nn.Module):
     def forward(self, x:torch.Tensor, p:torch.Tensor):
         x = self.mlp(self.embed(x) + self.encode(p))
         x = self.transformer(x)
-        x = self.output(x).flatten(1, -1)
+        x = torch.sum(self.gate(x)[:,:,:,None].permute(0, 2, 1, 3) * x[:,None,:,:], dim=2).flatten(1, 2)
         x = self.value(x)
         return x
     
@@ -60,8 +65,7 @@ class Policy(nn.Module):
         qs = torch.min(q1, q2)
         ps = torch.softmax(qs / self.temperature, dim=1)
         v = torch.sum(qs * ps, dim=1)
-        h = torch.sum(-ps * ps.log(), dim=1)
-        return v, h
+        return v
     
     def act(self, x:torch.Tensor, stochastic=True) -> torch.Tensor:
         x, p = self.embed(x)

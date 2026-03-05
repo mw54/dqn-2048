@@ -44,8 +44,8 @@ class Agent:
         terminals = terminals.to(DEVICE, torch.bool)
         weights = weights.to(DEVICE, torch.float)
         
-        v, h = self.target.evaluate(next_states)
-        y = rewards + self.discount * (v + h) * (~terminals)
+        v = self.target.evaluate(next_states)
+        y = rewards + self.discount * v * (~terminals)
         
         with torch.enable_grad():
             self.optimizer.zero_grad()
@@ -60,4 +60,5 @@ class Agent:
         for target_param, policy_param in zip(self.target.parameters(), self.policy.parameters()):
             target_param.data.copy_(self.polyak * policy_param.data + (1 - self.polyak) * target_param.data)
 
-        return errors, q1, q2, h
+        values = torch.min(q1, q2)
+        return values, errors

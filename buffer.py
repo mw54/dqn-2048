@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 DEVICE = torch.device("cpu")
 torch.set_grad_enabled(False)
@@ -75,7 +76,7 @@ class Buffer:
         self.size = min(self.capacity, self.size + size)
     
     def sample(self, batch_size:int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        p = self.priorities / torch.sum(self.priorities, dtype=torch.float)
+        p = F.normalize(self.priorities, dim=0, p=1)
         indices = torch.multinomial(p, batch_size, replacement=True)
         weights = (self.capacity * p[indices])**(-self.beta)
         weights = weights / torch.sum(weights, dtype=torch.float)
