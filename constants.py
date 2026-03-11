@@ -1,7 +1,7 @@
 policy_params = {
-    "model_channels": 96,
+    "model_channels": 144,
     "seq_len": 16,
-    "num_heads": 4,
+    "num_heads": 6,
     "num_layers": 3,
     "dropout": 0.0,
     "temperature": 1.0
@@ -32,6 +32,8 @@ buffer_params = {
 }
 
 queue_size = 16
+agent_device = "mps"
+environment_device = "mps"
 
 collect_params = {
     "environment_params": environment_params,
@@ -42,8 +44,8 @@ optimize_params = {
     "agent_params": agent_params,
     "buffer_params": buffer_params,
     "total_steps": 1048576,
-    "update_interval": 64,
-    "plot_interval": 256,
-    "save_interval": 1024,
+    "update_interval": 256,
+    "plot_interval": 4096,
+    "save_interval": 65536,
     "output_path": "."
 }

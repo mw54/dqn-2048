@@ -1,6 +1,7 @@
 import torch
+import constants
 
-DEVICE = torch.device("mps")
+DEVICE = torch.device(constants.environment_device)
 torch.set_grad_enabled(False)
 
 def action_encode(text:list[str]) -> torch.Tensor:

@@ -2,33 +2,33 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class QNet(nn.Module):
+class Value(nn.Module):
     def __init__(self, input_channels:int, model_channels:int, output_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:float):
-        super(QNet, self).__init__()
+        super(Value, self).__init__()
         self.embed = nn.Linear(input_channels, model_channels, bias=False)
         self.encode = nn.Linear(seq_len, model_channels, bias=False)
         self.mlp = nn.Sequential(
             nn.LayerNorm(model_channels),
-            nn.Linear(model_channels, 4 * model_channels),
+            nn.Linear(model_channels, 2 * model_channels),
             nn.GELU(),
-            nn.Linear(4 * model_channels, model_channels)
+            nn.Linear(2 * model_channels, model_channels)
         )
 
-        layer = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
+        layer = nn.TransformerEncoderLayer(model_channels, num_heads, 2 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
         self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
 
         self.gate = nn.Sequential(
             nn.LayerNorm(model_channels),
-            nn.Linear(model_channels, 4 * model_channels),
+            nn.Linear(model_channels, 2 * model_channels),
             nn.GELU(),
-            nn.Linear(4 * model_channels, num_heads),
+            nn.Linear(2 * model_channels, num_heads),
             nn.Sigmoid()
         )
         self.value = nn.Sequential(
             nn.LayerNorm(num_heads * model_channels),
-            nn.Linear(num_heads * model_channels, 4 * model_channels),
+            nn.Linear(num_heads * model_channels, 2 * model_channels),
             nn.GELU(),
-            nn.Linear(4 * model_channels, output_channels)
+            nn.Linear(2 * model_channels, output_channels)
         )
 
     def forward(self, x:torch.Tensor, p:torch.Tensor):
@@ -41,8 +41,8 @@ class QNet(nn.Module):
 class Policy(nn.Module):
     def __init__(self, model_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:int, temperature:float):
         super(Policy, self).__init__()
-        self.q1 = QNet(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
-        self.q2 = QNet(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
+        self.q1 = Value(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
+        self.q2 = Value(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
         self.temperature = temperature
         self.seq_len = seq_len
 

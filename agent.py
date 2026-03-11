@@ -1,8 +1,9 @@
 import torch
 import torch.optim as optim
 import networks
+import constants
 
-DEVICE = torch.device("mps")
+DEVICE = torch.device(constants.agent_device)
 torch.set_grad_enabled(False)
 
 class Agent:
