@@ -58,7 +58,7 @@ constants.py    # Hyperparameters
 |----------------|-------|
 | Learning rate  | 1e-3  |
 | Discount (γ)   | 0.999 |
-| Polyak (τ)     | 0.001 |
+| Polyak (τ)     | 0.002 |
 | Batch size     | 1024  |
 | Buffer size    | 1M    |
 | Temperature    | 1.0   |

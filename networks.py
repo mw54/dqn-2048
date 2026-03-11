@@ -6,33 +6,33 @@ class Value(nn.Module):
     def __init__(self, input_channels:int, model_channels:int, output_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:float):
         super(Value, self).__init__()
         self.embed = nn.Linear(input_channels, model_channels, bias=False)
-        self.encode = nn.Linear(seq_len, model_channels, bias=False)
+        self.encode = nn.Parameter(torch.randn(1, seq_len, model_channels))
         self.mlp = nn.Sequential(
             nn.LayerNorm(model_channels),
-            nn.Linear(model_channels, 2 * model_channels),
+            nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
-            nn.Linear(2 * model_channels, model_channels)
+            nn.Linear(4 * model_channels, model_channels)
         )
 
-        layer = nn.TransformerEncoderLayer(model_channels, num_heads, 2 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
+        layer = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
         self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
 
         self.gate = nn.Sequential(
             nn.LayerNorm(model_channels),
-            nn.Linear(model_channels, 2 * model_channels),
+            nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
-            nn.Linear(2 * model_channels, num_heads),
+            nn.Linear(4 * model_channels, num_heads),
             nn.Sigmoid()
         )
         self.value = nn.Sequential(
             nn.LayerNorm(num_heads * model_channels),
-            nn.Linear(num_heads * model_channels, 2 * model_channels),
+            nn.Linear(num_heads * model_channels, 4 * model_channels),
             nn.GELU(),
-            nn.Linear(2 * model_channels, output_channels)
+            nn.Linear(4 * model_channels, output_channels)
         )
 
-    def forward(self, x:torch.Tensor, p:torch.Tensor):
-        x = self.mlp(self.embed(x) + self.encode(p))
+    def forward(self, x:torch.Tensor):
+        x = self.mlp(self.embed(x) + self.encode)
         x = self.transformer(x)
         x = torch.sum(self.gate(x)[:,:,:,None].permute(0, 2, 1, 3) * x[:,None,:,:], dim=2).flatten(1, 2)
         x = self.value(x)
@@ -49,28 +49,27 @@ class Policy(nn.Module):
     def embed(self, x:torch.Tensor):
         x = x.flatten(1, 2)
         x = F.one_hot(x.masked_fill(x == 0, 1.0).log2().long(), num_classes=18).to(torch.float)
-        p = torch.eye(self.seq_len, x.size(1), device=x.device, dtype=torch.float)[None,:,:]
-        return x, p
+        return x
 
     def forward(self, x:torch.Tensor):
-        x, p = self.embed(x)
-        q1 = self.q1(x, p)
-        q2 = self.q2(x, p)
+        x = self.embed(x)
+        q1 = self.q1(x)
+        q2 = self.q2(x)
         return q1, q2
     
     def evaluate(self, x:torch.Tensor) -> tuple[torch.Tensor]:
-        x, p = self.embed(x)
-        q1 = self.q1(x, p)
-        q2 = self.q2(x, p)
+        x = self.embed(x)
+        q1 = self.q1(x)
+        q2 = self.q2(x)
         qs = torch.min(q1, q2)
         ps = torch.softmax(qs / self.temperature, dim=1)
         v = torch.sum(qs * ps, dim=1)
         return v
     
     def act(self, x:torch.Tensor, stochastic=True) -> torch.Tensor:
-        x, p = self.embed(x)
-        q1 = self.q1(x, p)
-        q2 = self.q2(x, p)
+        x = self.embed(x)
+        q1 = self.q1(x)
+        q2 = self.q2(x)
         qs = torch.min(q1, q2)
         ps = torch.softmax(qs / self.temperature, dim=1)
         if stochastic:

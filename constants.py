@@ -15,7 +15,7 @@ agent_params = {
     },
     "batch_size": 1024,
     "discount": 0.999,
-    "polyak": 0.001
+    "polyak": 0.002
 }
 
 environment_params = {
