@@ -20,7 +20,7 @@ agent_params = {
 
 environment_params = {
     "board_size": 4,
-    "batch_size": 1024
+    "batch_size": 64
 }
 
 buffer_params = {
@@ -31,7 +31,7 @@ buffer_params = {
     "temperature": 4.0
 }
 
-queue_size = 4
+queue_size = 16
 
 collect_params = {
     "environment_params": environment_params,
