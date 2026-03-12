@@ -22,7 +22,7 @@ class Value(nn.Module):
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, num_heads),
-            nn.Sigmoid()
+            nn.Softmax(dim=1)
         )
         self.value = nn.Sequential(
             nn.LayerNorm(num_heads * model_channels),
@@ -31,10 +31,11 @@ class Value(nn.Module):
             nn.Linear(4 * model_channels, output_channels)
         )
 
-    def forward(self, x:torch.Tensor):
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
         x = self.mlp(self.embed(x) + self.encode)
         x = self.transformer(x)
-        x = torch.sum(self.gate(x)[:,:,:,None].permute(0, 2, 1, 3) * x[:,None,:,:], dim=2).flatten(1, 2)
+        gate = self.gate(x).permute(0, 2, 1)
+        x = torch.sum(gate[:,:,:,None] * x[:,None,:,:], dim=2).flatten(1, 2)
         x = self.value(x)
         return x
     
@@ -46,24 +47,23 @@ class Policy(nn.Module):
         self.temperature = temperature
         self.seq_len = seq_len
 
-    def embed(self, x:torch.Tensor):
+    def embed(self, x:torch.Tensor) -> torch.Tensor:
         x = x.flatten(1, 2)
         x = F.one_hot(x.masked_fill(x == 0, 1.0).log2().long(), num_classes=18).to(torch.float)
         return x
 
-    def forward(self, x:torch.Tensor):
+    def forward(self, x:torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         x = self.embed(x)
         q1 = self.q1(x)
         q2 = self.q2(x)
         return q1, q2
     
-    def evaluate(self, x:torch.Tensor) -> tuple[torch.Tensor]:
+    def eval(self, x:torch.Tensor) -> torch.Tensor:
         x = self.embed(x)
         q1 = self.q1(x)
         q2 = self.q2(x)
         qs = torch.min(q1, q2)
-        ps = torch.softmax(qs / self.temperature, dim=1)
-        v = torch.sum(qs * ps, dim=1)
+        v = torch.max(qs, dim=1).values
         return v
     
     def act(self, x:torch.Tensor, stochastic=True) -> torch.Tensor:

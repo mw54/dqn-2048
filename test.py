@@ -14,7 +14,7 @@ def action_decode(actions:torch.Tensor) -> list[str]:
 env = environment.BatchBoards(4, 1)
 agt = agent.Agent(**constants.agent_params)
 agt.load("agent.pt")
-pol = agt.policy.to(environment.DEVICE)
+pol = agt.policy.to(env.device)
 pol.eval()
 
 print(env)
@@ -31,7 +31,7 @@ while not all(env.terminals):
 
     actions = pol.act(this_states, stochastic=False)
     rewards = env(actions).tolist()
-    print()
+    input()
     print(f"Action: {action_decode(actions)[0]}")
     print(f"Reward: {rewards[0]}")
     print(env)

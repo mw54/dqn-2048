@@ -4,23 +4,25 @@ policy_params = {
     "num_heads": 6,
     "num_layers": 3,
     "dropout": 0.0,
-    "temperature": 1.0
+    "temperature": 16.0
 }
 
 agent_params = {
     "policy_params": policy_params,
     "optimizer_params": {
         "lr": 1e-3,
-        "weight_decay": 1e-3
+        "weight_decay": 0.0
     },
     "batch_size": 1024,
     "discount": 0.999,
-    "polyak": 0.002
+    "polyak": 0.002,
+    "device": "mps"
 }
 
 environment_params = {
     "board_size": 4,
-    "batch_size": 64
+    "batch_size": 64,
+    "device": "mps"
 }
 
 buffer_params = {
@@ -32,8 +34,6 @@ buffer_params = {
 }
 
 queue_size = 16
-agent_device = "mps"
-environment_device = "mps"
 
 collect_params = {
     "environment_params": environment_params,

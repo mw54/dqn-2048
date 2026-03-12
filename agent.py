@@ -1,22 +1,21 @@
 import torch
 import torch.optim as optim
 import networks
-import constants
 
-DEVICE = torch.device(constants.agent_device)
 torch.set_grad_enabled(False)
 
 class Agent:
-    def __init__(self, policy_params:dict, optimizer_params:dict, batch_size:int, discount:float, polyak:float, path:str=None):
-        self.policy = networks.Policy(**policy_params).to(DEVICE)
-        self.target = networks.Policy(**policy_params).to(DEVICE)
-        self.target.requires_grad_(False)
-        self.target.load_state_dict(self.policy.state_dict())
-        self.optimizer = optim.AdamW(self.policy.parameters(), **optimizer_params)
-
+    def __init__(self, policy_params:dict, optimizer_params:dict, batch_size:int, discount:float, polyak:float, device:str="cpu", path:str=None):
         self.batch_size = batch_size
         self.discount = discount
         self.polyak = polyak
+        self.device = device
+
+        self.policy = networks.Policy(**policy_params).to(self.device)
+        self.target = networks.Policy(**policy_params).to(self.device)
+        self.target.requires_grad_(False)
+        self.target.load_state_dict(self.policy.state_dict())
+        self.optimizer = optim.AdamW(self.policy.parameters(), **optimizer_params)
 
         if path is not None:
             self.load(path)
@@ -35,17 +34,17 @@ class Agent:
         self.target.load_state_dict(state_dict["target"])
         self.optimizer.load_state_dict(state_dict["optimizer"])
 
-    def step(self, this_states:torch.Tensor, actions:torch.Tensor, next_states:torch.Tensor, rewards:torch.Tensor, terminals:torch.Tensor, weights:torch.Tensor) -> tuple[torch.Tensor]:
+    def step(self, this_states:torch.Tensor, actions:torch.Tensor, next_states:torch.Tensor, rewards:torch.Tensor, terminals:torch.Tensor, weights:torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         assert len(this_states) == len(actions) == len(next_states) == len(rewards) == len(terminals) == len(weights)
 
-        this_states = this_states.to(DEVICE, torch.float)
-        actions = actions.to(DEVICE, torch.long)
-        next_states = next_states.to(DEVICE, torch.float)
-        rewards = rewards.to(DEVICE, torch.float)
-        terminals = terminals.to(DEVICE, torch.bool)
-        weights = weights.to(DEVICE, torch.float)
+        this_states = this_states.to(self.device, torch.float)
+        actions = actions.to(self.device, torch.long)
+        next_states = next_states.to(self.device, torch.float)
+        rewards = rewards.to(self.device, torch.float)
+        terminals = terminals.to(self.device, torch.bool)
+        weights = weights.to(self.device, torch.float)
         
-        v = self.target.evaluate(next_states)
+        v = self.target.eval(next_states)
         y = rewards + self.discount * v * (~terminals)
         
         with torch.enable_grad():

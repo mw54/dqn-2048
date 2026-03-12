@@ -1,7 +1,5 @@
 import torch
-import constants
 
-DEVICE = torch.device(constants.environment_device)
 torch.set_grad_enabled(False)
 
 def action_encode(text:list[str]) -> torch.Tensor:
@@ -9,18 +7,19 @@ def action_encode(text:list[str]) -> torch.Tensor:
     encoded = list()
     for word in text:
         encoded.append(mapping[word])
-    return torch.tensor(encoded, dtype=torch.int, device=DEVICE)
+    return torch.tensor(encoded, dtype=torch.int)
 
 class BatchBoards:
-    def __init__(self, board_size:int=4, batch_size:int=3):
+    def __init__(self, board_size:int=4, batch_size:int=3, device:str="cpu"):
         self.board_size = board_size
         self.batch_size = batch_size
-        self.boards = torch.zeros((batch_size, board_size, board_size), dtype=torch.int, device=DEVICE)
-        self.scores = torch.zeros(batch_size, dtype=torch.int, device=DEVICE)
-        self.terminals = torch.ones(batch_size, dtype=torch.bool, device=DEVICE)
+        self.device = device
+        self.boards = torch.zeros((batch_size, board_size, board_size), dtype=torch.int, device=self.device)
+        self.scores = torch.zeros(batch_size, dtype=torch.int, device=self.device)
+        self.terminals = torch.ones(batch_size, dtype=torch.bool, device=self.device)
         self.reset()
 
-    def save(self, path:str) -> dict[str,torch.Tensor]:
+    def save(self, path:str):
         state_dict = {
             "board_size": self.board_size,
             "batch_size": self.batch_size,
@@ -35,9 +34,9 @@ class BatchBoards:
         self.board_size = state_dict["board_size"]
         self.batch_size = state_dict["batch_size"]
         
-        self.boards = state_dict["boards"].to(DEVICE)
-        self.scores = state_dict["scores"].to(DEVICE)
-        self.terminals = state_dict["terminals"].to(DEVICE)
+        self.boards = state_dict["boards"].to(self.device)
+        self.scores = state_dict["scores"].to(self.device)
+        self.terminals = state_dict["terminals"].to(self.device)
 
     def reset(self):
         self.boards[self.terminals] = 0
@@ -52,11 +51,11 @@ class BatchBoards:
         if reset:
             available[~self.terminals] = 0
         
-        indices = (torch.rand(self.batch_size, device=DEVICE) * torch.sum(available, dim=1, dtype=torch.float)).to(torch.int)
+        indices = (torch.rand(self.batch_size, device=self.device) * torch.sum(available, dim=1, dtype=torch.float)).to(torch.int)
         indices = indices.unsqueeze(1) + 1
         
         mask = (torch.cumsum(available, dim=1, dtype=torch.int) == indices) & available
-        values = torch.where(torch.rand(self.batch_size, device=DEVICE) < 0.9, 2, 4).to(torch.int)
+        values = torch.where(torch.rand(self.batch_size, device=self.device) < 0.9, 2, 4).to(torch.int)
 
         tile_matrix = values.unsqueeze(1).expand(-1, self.board_size * self.board_size)
         self.boards.masked_scatter_(mask, tile_matrix[mask])
@@ -71,10 +70,10 @@ class BatchBoards:
         rewards = torch.sum(self.boards[:, :, :-1] * equal, dim=(1, 2), dtype=torch.int)
         return rewards
 
-    def _push_tiles(self):
+    def _push_tiles(self) -> torch.Tensor:
         mask = torch.ne(self.boards, 0)
         tile_counts = torch.sum(mask, dim=2, keepdim=True, dtype=torch.int)
-        range_index = torch.arange(self.board_size, device=DEVICE)[None, None, :]
+        range_index = torch.arange(self.board_size, device=self.device)[None, None, :]
         indices = torch.lt(range_index, tile_counts)
         self.boards[indices] = self.boards[mask]
         self.boards[~indices] = 0
@@ -97,7 +96,7 @@ class BatchBoards:
     def __call__(self, actions:torch.Tensor) -> torch.Tensor:
         assert actions.shape == (self.batch_size,)
         assert torch.all(actions >= 0) and torch.all(actions <= 3)
-        actions = actions.to(DEVICE, torch.long)
+        actions = actions.to(self.device, torch.long)
 
         rewards = self._update_boards(actions)
         self._add_tiles()

@@ -29,8 +29,8 @@ class History:
             plt.close()
     
 def collect(data_queue:mp.Queue, model_queue:mp.Queue, environment_params:dict[str,], policy_params:dict[str,]):
-    pol = networks.Policy(**policy_params).to(environment.DEVICE)
     env = environment.BatchBoards(**environment_params)
+    pol = networks.Policy(**policy_params).to(env.device)
     pol.eval()
     while True:
         if env.terminals.any():

@@ -61,7 +61,7 @@ constants.py    # Hyperparameters
 | Polyak (τ)     | 0.002 |
 | Batch size     | 1024  |
 | Buffer size    | 1M    |
-| Temperature    | 1.0   |
+| Temperature    | 16.0  |
 | Model channels | 144   |
 
 ## Requirements
