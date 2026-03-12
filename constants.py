@@ -11,11 +11,11 @@ agent_params = {
     "policy_params": policy_params,
     "optimizer_params": {
         "lr": 1e-3,
-        "weight_decay": 0.0
+        "weight_decay": 1e-6
     },
     "batch_size": 1024,
     "discount": 0.999,
-    "polyak": 0.002,
+    "polyak": 0.004,
     "device": "mps"
 }
 
@@ -30,7 +30,8 @@ buffer_params = {
     "board_size": 4,
     "alpha": 0.6,
     "beta": 0.4,
-    "temperature": 4.0
+    "temperature": 4.0,
+    "device": "cpu"
 }
 
 queue_size = 16

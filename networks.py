@@ -58,7 +58,7 @@ class Policy(nn.Module):
         q2 = self.q2(x)
         return q1, q2
     
-    def eval(self, x:torch.Tensor) -> torch.Tensor:
+    def evaluate(self, x:torch.Tensor) -> torch.Tensor:
         x = self.embed(x)
         q1 = self.q1(x)
         q2 = self.q2(x)

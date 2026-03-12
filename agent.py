@@ -44,7 +44,7 @@ class Agent:
         terminals = terminals.to(self.device, torch.bool)
         weights = weights.to(self.device, torch.float)
         
-        v = self.target.eval(next_states)
+        v = self.target.evaluate(next_states)
         y = rewards + self.discount * v * (~terminals)
         
         with torch.enable_grad():
