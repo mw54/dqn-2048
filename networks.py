@@ -9,16 +9,14 @@ class Value(nn.Module):
         self.encoding = nn.Parameter(torch.randn(1, seq_len, model_channels))
         self.query = nn.Parameter(torch.randn(1, output_channels, model_channels))
         self.mlp = nn.Sequential(
-            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, model_channels)
         )
 
-        self.transformer = nn.Transformer(model_channels, num_heads, encoder_layers, decoder_layers, 4 * model_channels, dropout, "gelu", batch_first=True, norm_first=True)
+        self.transformer = nn.Transformer(model_channels, num_heads, encoder_layers, decoder_layers, 4 * model_channels, dropout, "gelu", batch_first=True)
 
         self.value = nn.Sequential(
-            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, 1)
