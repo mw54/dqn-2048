@@ -7,7 +7,6 @@ class Value(nn.Module):
         super(Value, self).__init__()
         self.embedding = nn.Linear(input_channels, model_channels, bias=False)
         self.encoding = nn.Parameter(torch.randn(1, seq_len, model_channels))
-        self.query = nn.Parameter(torch.randn(1, output_channels, model_channels))
         self.mlp = nn.Sequential(
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
