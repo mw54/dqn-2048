@@ -8,6 +8,7 @@ class Value(nn.Module):
         self.embedding = nn.Linear(input_channels, model_channels, bias=False)
         self.encoding = nn.Parameter(torch.randn(1, seq_len, model_channels))
         self.mlp = nn.Sequential(
+            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, model_channels)
@@ -16,7 +17,15 @@ class Value(nn.Module):
         layer = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
         self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
 
+        self.gate = nn.Sequential(
+            nn.LayerNorm(model_channels),
+            nn.Linear(model_channels, 4 * model_channels),
+            nn.GELU(),
+            nn.Linear(4 * model_channels, output_channels),
+            nn.Sigmoid()
+        )
         self.value = nn.Sequential(
+            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, output_channels)
@@ -25,7 +34,7 @@ class Value(nn.Module):
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         x = self.mlp(self.embedding(x) + self.encoding)
         x = self.transformer(x)
-        x = self.value(x.mean(dim=1))
+        x = torch.sum(self.value(x) * self.gate(x), dim=1)
         return x
     
 class Policy(nn.Module):
