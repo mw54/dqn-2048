@@ -26,7 +26,7 @@ class Value(nn.Module):
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         x = self.mlp(self.embedding(x) + self.encoding)
-        x = self.transformer(x, self.query.repeat(x.size(0), 1, 1))
+        x = self.transformer(x, self.query.expand(*x.size()))
         x = self.value(x)[:,:,0]
         return x
     
