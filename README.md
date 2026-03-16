@@ -5,7 +5,7 @@ Deep Q-Network with transformer architecture to solve the 2048 game.
 ## Architecture
 
 - **Agent**: Double Q-learning
-- **Network**: Transformer encoder (3 layers, 6 heads)
+- **Network**: Transformer (4 encoder layers, 2 decoder layers, 6 heads)
 - **Replay**: Prioritized experience replay (1M capacity)
 - **Training**: Parallel data collection with asynchronous optimization
 

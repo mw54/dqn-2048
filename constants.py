@@ -2,7 +2,8 @@ policy_params = {
     "model_channels": 144,
     "seq_len": 16,
     "num_heads": 6,
-    "num_layers": 3,
+    "encoder_layers": 4,
+    "decoder_layers": 2,
     "dropout": 0.0
 }
 
