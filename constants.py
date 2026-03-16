@@ -3,8 +3,7 @@ policy_params = {
     "seq_len": 16,
     "num_heads": 6,
     "num_layers": 3,
-    "dropout": 0.0,
-    "temperature": 16.0
+    "dropout": 0.0
 }
 
 agent_params = {
@@ -38,7 +37,8 @@ queue_size = 16
 
 collect_params = {
     "environment_params": environment_params,
-    "policy_params": policy_params
+    "policy_params": policy_params,
+    "temperature": 16.0
 }
 
 optimize_params = {

@@ -29,7 +29,7 @@ while not all(env.terminals):
         floatfmt=".2f"
     ))
 
-    actions = pol.act(this_states, stochastic=False)
+    actions = pol.act(this_states)
     rewards = env(actions).tolist()
     input()
     print(f"Action: {action_decode(actions)[0]}")

@@ -28,7 +28,7 @@ class History:
             plt.savefig(f"{path}/{key}.png")
             plt.close()
     
-def collect(data_queue:mp.Queue, model_queue:mp.Queue, environment_params:dict[str,], policy_params:dict[str,]):
+def collect(data_queue:mp.Queue, model_queue:mp.Queue, environment_params:dict[str,], policy_params:dict[str,], temperature:float):
     env = environment.BatchBoards(**environment_params)
     pol = networks.Policy(**policy_params).to(env.device)
     pol.eval()
@@ -38,7 +38,7 @@ def collect(data_queue:mp.Queue, model_queue:mp.Queue, environment_params:dict[s
         if not model_queue.empty():
             pol.load_state_dict(model_queue.get())
         this_states = torch.clone(env.boards)
-        actions = pol.act(this_states, stochastic=True)
+        actions = pol.act(this_states, temperature=temperature)
         rewards = env(actions)
         next_states = torch.clone(env.boards)
         terminals = torch.clone(env.terminals)

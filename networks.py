@@ -40,11 +40,10 @@ class Value(nn.Module):
         return x
     
 class Policy(nn.Module):
-    def __init__(self, model_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:int, temperature:float):
+    def __init__(self, model_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:int):
         super(Policy, self).__init__()
         self.q1 = Value(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
         self.q2 = Value(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
-        self.temperature = temperature
         self.seq_len = seq_len
 
     def embed(self, x:torch.Tensor) -> torch.Tensor:
@@ -66,14 +65,14 @@ class Policy(nn.Module):
         v = torch.max(qs, dim=1).values
         return v
     
-    def act(self, x:torch.Tensor, stochastic=True) -> torch.Tensor:
+    def act(self, x:torch.Tensor, temperature:float=None) -> torch.Tensor:
         x = self.embed(x)
         q1 = self.q1(x)
         q2 = self.q2(x)
         qs = torch.min(q1, q2)
-        ps = torch.softmax(qs / self.temperature, dim=1)
-        if stochastic:
+        if temperature is not None:
+            ps = torch.softmax(qs / temperature, dim=1)
             actions = torch.multinomial(ps, num_samples=1)[:,0]
         else:
-            actions = torch.argmax(ps, dim=1)
+            actions = torch.argmax(qs, dim=1)
         return actions
