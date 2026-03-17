@@ -13,7 +13,7 @@ agent_params = {
         "weight_decay": 1e-6
     },
     "batch_size": 1024,
-    "discount": 0.999,
+    "discount": 0.99,
     "polyak": 0.004,
     "device": "mps"
 }
@@ -38,7 +38,7 @@ queue_size = 16
 collect_params = {
     "environment_params": environment_params,
     "policy_params": policy_params,
-    "temperature": 16.0
+    "temperature": 4.0
 }
 
 optimize_params = {

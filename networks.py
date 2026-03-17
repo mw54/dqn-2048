@@ -7,8 +7,9 @@ class Value(nn.Module):
         super(Value, self).__init__()
         self.embedding = nn.Linear(input_channels, model_channels, bias=False)
         self.encoding = nn.Parameter(torch.randn(1, seq_len, model_channels))
-        self.mlp = nn.Sequential(
-            nn.LayerNorm(model_channels),
+        self.norm1 = nn.LayerNorm(model_channels)
+        self.norm2 = nn.LayerNorm(model_channels)
+        self.input = nn.Sequential(
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, model_channels)
@@ -18,23 +19,27 @@ class Value(nn.Module):
         self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
 
         self.gate = nn.Sequential(
-            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, output_channels),
-            nn.Sigmoid()
+            nn.Softmax(dim=1)
         )
         self.value = nn.Sequential(
-            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
-            nn.Linear(4 * model_channels, output_channels)
+            nn.Linear(4 * model_channels, model_channels),
+        )
+        self.output = nn.Sequential(
+            nn.Linear(model_channels, 4 * model_channels),
+            nn.GELU(),
+            nn.Linear(4 * model_channels, 1)
         )
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
-        x = self.mlp(self.embedding(x) + self.encoding)
+        x = self.input(self.norm1(self.embedding(x)) + self.norm2(self.encoding))
         x = self.transformer(x)
-        x = torch.sum(self.value(x) * self.gate(x), dim=1)
+        x = torch.sum(self.value(x)[:,None,:,:] * self.gate(x)[:,:,:,None].permute(0, 2, 1, 3), dim=2)
+        x = self.output(x)[:,:,0]
         return x
     
 class Policy(nn.Module):
