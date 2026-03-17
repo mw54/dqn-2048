@@ -2,7 +2,8 @@ policy_params = {
     "model_channels": 144,
     "seq_len": 16,
     "num_heads": 6,
-    "num_layers": 4,
+    "encoder_layers": 4,
+    "decoder_layers": 2,
     "dropout": 0.0
 }
 
@@ -12,8 +13,8 @@ agent_params = {
         "lr": 1e-3,
         "weight_decay": 1e-6
     },
-    "batch_size": 1024,
-    "discount": 0.999,
+    "batch_size": 256,
+    "discount": 0.99,
     "polyak": 0.004,
     "device": "mps"
 }
@@ -25,7 +26,7 @@ environment_params = {
 }
 
 buffer_params = {
-    "capacity": 1048576,
+    "capacity": 4194304,
     "board_size": 4,
     "alpha": 0.6,
     "beta": 0.4,
@@ -33,12 +34,12 @@ buffer_params = {
     "device": "cpu"
 }
 
-queue_size = 16
+queue_size = 4
 
 collect_params = {
     "environment_params": environment_params,
     "policy_params": policy_params,
-    "temperature": 16.0
+    "temperature": 4.0
 }
 
 optimize_params = {

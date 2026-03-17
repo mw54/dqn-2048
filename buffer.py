@@ -76,10 +76,9 @@ class Buffer:
         self.size = min(self.capacity, self.size + size)
     
     def sample(self, batch_size:int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        p = F.normalize(self.priorities, dim=0, p=1)
-        indices = torch.multinomial(p, batch_size, replacement=True)
-        weights = (self.capacity * p[indices])**(-self.beta)
-        weights = weights / torch.sum(weights, dtype=torch.float)
+        indices = torch.multinomial(self.priorities, batch_size, replacement=True)
+        weights = (self.capacity * self.priorities[indices])**(-self.beta)
+        weights = F.normalize(weights, p=1, dim=0)
         batch = (self.this_states[indices], self.actions[indices], self.next_states[indices], self.rewards[indices], self.terminals[indices])
         return batch, weights, indices
     

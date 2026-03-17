@@ -3,45 +3,40 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Value(nn.Module):
-    def __init__(self, input_channels:int, model_channels:int, output_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:float):
+    def __init__(self, input_channels:int, model_channels:int, output_channels:int, seq_len:int, num_heads:int, encoder_layers:int, decoder_layers:int, dropout:float):
         super(Value, self).__init__()
         self.embedding = nn.Linear(input_channels, model_channels, bias=False)
         self.encoding = nn.Parameter(torch.randn(1, seq_len, model_channels))
         self.mlp = nn.Sequential(
-            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
             nn.Linear(4 * model_channels, model_channels)
         )
 
-        layer = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
-        self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
+        self.query = nn.Parameter(torch.randn(1, output_channels, model_channels))
+        encoder = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
+        decoder = nn.TransformerDecoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
+        self.encoder = nn.TransformerEncoder(encoder, encoder_layers, enable_nested_tensor=False)
+        self.decoder = nn.TransformerDecoder(decoder, decoder_layers)
 
-        self.gate = nn.Sequential(
-            nn.LayerNorm(model_channels),
-            nn.Linear(model_channels, 4 * model_channels),
-            nn.GELU(),
-            nn.Linear(4 * model_channels, output_channels),
-            nn.Sigmoid()
-        )
         self.value = nn.Sequential(
-            nn.LayerNorm(model_channels),
             nn.Linear(model_channels, 4 * model_channels),
             nn.GELU(),
-            nn.Linear(4 * model_channels, output_channels)
+            nn.Linear(4 * model_channels, 1)
         )
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         x = self.mlp(self.embedding(x) + self.encoding)
-        x = self.transformer(x)
-        x = torch.sum(self.value(x) * self.gate(x), dim=1)
+        x = self.encoder(x)
+        x = self.decoder(self.query.expand(x.size(0), -1, -1), x)
+        x = self.value(x)[:,:,0]
         return x
     
 class Policy(nn.Module):
-    def __init__(self, model_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:int):
+    def __init__(self, model_channels:int, seq_len:int, num_heads:int, encoder_layers:int, decoder_layers:int, dropout:int):
         super(Policy, self).__init__()
-        self.q1 = Value(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
-        self.q2 = Value(18, model_channels, 4, seq_len, num_heads, num_layers, dropout)
+        self.q1 = Value(18, model_channels, 4, seq_len, num_heads, encoder_layers, decoder_layers, dropout)
+        self.q2 = Value(18, model_channels, 4, seq_len, num_heads, encoder_layers, decoder_layers, dropout)
 
     def embed(self, x:torch.Tensor) -> torch.Tensor:
         x = x.flatten(1, 2)
