@@ -57,11 +57,11 @@ constants.py    # Hyperparameters
 | Parameter      | Value |
 |----------------|-------|
 | Learning rate  | 1e-3  |
-| Discount (γ)   | 0.999 |
+| Discount (γ)   | 0.99  |
 | Polyak (τ)     | 0.004 |
 | Batch size     | 1024  |
 | Buffer size    | 1M    |
-| Temperature    | 16.0  |
+| Temperature    | 4.0   |
 | Model channels | 144   |
 
 ## Requirements
