@@ -19,7 +19,7 @@ python main.py
 
 Training runs with:
 - 64 parallel environments for data collection
-- 1024 batch size for optimization
+- 256 batch size for optimization
 - Model checkpoints saved every 65536 steps
 
 ### Testing
@@ -59,15 +59,15 @@ constants.py    # Hyperparameters
 | Learning rate  | 1e-3  |
 | Discount (γ)   | 0.99  |
 | Polyak (τ)     | 0.004 |
-| Batch size     | 1024  |
+| Batch size     | 256   |
 | Buffer size    | 1M    |
 | Temperature    | 4.0   |
 | Model channels | 144   |
 
 ## Requirements
 
-- Python 3.8+
-- PyTorch
+- Python 3.13+
+- PyTorch 2.7+
 - NumPy
 - matplotlib
 - tabulate
