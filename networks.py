@@ -42,24 +42,23 @@ class Value(nn.Module):
 class Policy(nn.Module):
     def __init__(self, model_channels:int, seq_len:int, num_heads:int, num_layers:int, dropout:int):
         super(Policy, self).__init__()
-        self.positions = nn.Buffer(torch.eye(seq_len)[None,:,:])
+        self.ps = nn.Buffer(torch.eye(seq_len)[None,:,:])
         self.q1 = Value(1, model_channels, 4, seq_len, num_heads, num_layers, dropout)
         self.q2 = Value(1, model_channels, 4, seq_len, num_heads, num_layers, dropout)
 
-    def embed(self, x:torch.Tensor) -> torch.Tensor:
-        x = x.flatten(1, 2)
-        x = x.masked_fill(x == 0, 1.0).log2()[:,:,None]
-        p = self.positions[:,:x.size(1),:].expand(x.size(0), -1, -1)
+    def tokenize(self, x:torch.Tensor) -> torch.Tensor:
+        x = x.masked_fill(x == 0, 1.0).log2().flatten(1, 2)[:,:,None]
+        p = self.ps[:,:x.size(1),:].expand(x.size(0), -1, -1)
         return x, p
 
     def forward(self, x:torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        x, p = self.embed(x)
+        x, p = self.tokenize(x)
         q1 = self.q1(x, p)
         q2 = self.q2(x, p)
         return q1, q2
     
     def evaluate(self, x:torch.Tensor) -> torch.Tensor:
-        x, p = self.embed(x)
+        x, p = self.tokenize(x)
         q1 = self.q1(x, p)
         q2 = self.q2(x, p)
         qs = torch.min(q1, q2)
@@ -67,7 +66,7 @@ class Policy(nn.Module):
         return v
     
     def act(self, x:torch.Tensor, temperature:float=None) -> torch.Tensor:
-        x, p = self.embed(x)
+        x, p = self.tokenize(x)
         q1 = self.q1(x, p)
         q2 = self.q2(x, p)
         qs = torch.min(q1, q2)
