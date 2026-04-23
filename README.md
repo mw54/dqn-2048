@@ -5,7 +5,7 @@ Deep Q-Network with transformer architecture to solve the 2048 game.
 ## Architecture
 
 - **Agent**: Double Q-learning
-- **Network**: Transformer Encoder (3 layers, 4 heads)
+- **Network**: Transformer Encoder (3 layers, 6 heads) + MLP Value Head (3 layers, 1024 hidden channels)
 - **Replay**: Prioritized experience replay (1M capacity)
 - **Training**: Parallel data collection with asynchronous optimization
 
@@ -20,7 +20,7 @@ python main.py
 Training runs with:
 - 64 parallel environments for data collection
 - 256 batch size for optimization
-- Model checkpoints saved every 65536 steps
+- Model checkpoints saved every 16384 steps
 
 ### Testing
 
@@ -57,7 +57,7 @@ constants.py    # Hyperparameters
 | Parameter      | Value |
 |----------------|-------|
 | Learning rate  | 1e-3  |
-| Discount (γ)   | 0.99  |
+| Discount (γ)   | 0.996 |
 | Polyak (τ)     | 0.004 |
 | Batch size     | 256   |
 | Buffer size    | 1M    |

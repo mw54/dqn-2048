@@ -62,8 +62,9 @@ def optimize(data_queue:mp.Queue, model_queue:mp.Queue, agent_params:dict[str,],
         buf.update(indices, errors)
         history.register({"value": values.mean().item(), "error": errors.mean().item()})
         
-        if (1 + 1) % update_interval == 0:
-            model_queue.put(agt.policy.state_dict())
+        if (i + 1) % update_interval == 0:
+            state_dict = {k: v.cpu() for k, v in agt.policy.state_dict().items()}
+            model_queue.put(state_dict)
         if (i + 1) % plot_interval == 0:
             history.plot(output_path)
         if (i + 1) % save_interval == 0:
