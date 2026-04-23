@@ -1,5 +1,6 @@
 import torch
 import torch.optim as optim
+import matplotlib.pyplot as plt
 import networks
 
 torch.set_grad_enabled(False)
@@ -16,6 +17,7 @@ class Agent:
         self.target.requires_grad_(False)
         self.target.load_state_dict(self.policy.state_dict())
         self.optimizer = optim.AdamW(self.policy.parameters(), **optimizer_params)
+        self.history = {"value": [], "error": []}
 
         if path is not None:
             self.load(path)
@@ -24,7 +26,8 @@ class Agent:
         state_dict = {
             "policy": self.policy.state_dict(),
             "target": self.target.state_dict(),
-            "optimizer": self.optimizer.state_dict()
+            "optimizer": self.optimizer.state_dict(),
+            "history": self.history
         }
         torch.save(state_dict, path)
 
@@ -33,6 +36,17 @@ class Agent:
         self.policy.load_state_dict(state_dict["policy"])
         self.target.load_state_dict(state_dict["target"])
         self.optimizer.load_state_dict(state_dict["optimizer"])
+        self.history = state_dict["history"]
+
+    def plot(self, path:str):
+        for key, val in self.history.items():
+            plt.figure(figsize=(5, 5), dpi=300)
+            plt.plot(val)
+            plt.xlabel("step")
+            plt.ylabel(key)
+            plt.tight_layout()
+            plt.savefig(f"{path}/{key}.png")
+            plt.close()
 
     def step(self, this_states:torch.Tensor, actions:torch.Tensor, next_states:torch.Tensor, rewards:torch.Tensor, terminals:torch.Tensor, weights:torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         assert len(this_states) == len(actions) == len(next_states) == len(rewards) == len(terminals) == len(weights)
@@ -61,4 +75,7 @@ class Agent:
             target_param.data.copy_(self.polyak * policy_param.data + (1 - self.polyak) * target_param.data)
 
         values = torch.min(q1, q2)
-        return values, errors
+        self.history["value"].append(values.mean().item())
+        self.history["error"].append(errors.mean().item())
+        
+        return errors
