@@ -36,7 +36,8 @@ def collect(data_queue:mp.Queue, model_queue:mp.Queue, environment_params:dict[s
         if env.terminals.any():
             env.reset()
         if not model_queue.empty():
-            pol.load_state_dict(model_queue.get())
+            state_dict = model_queue.get()
+            pol.load_state_dict(state_dict)
         this_states = torch.clone(env.boards)
         actions = pol.act(this_states, temperature=temperature)
         rewards = env(actions)

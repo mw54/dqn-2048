@@ -52,9 +52,9 @@ class Policy(nn.Module):
         q1 = self.value1(x)
         q2 = self.value2(x)
         qs = torch.min(q1, q2)
-        ps = torch.softmax(qs / temperature, dim=1)
         if temperature is not None:
+            ps = torch.softmax(qs / temperature, dim=1)
             actions = torch.multinomial(ps, num_samples=1)[:,0]
         else:
-            actions = torch.argmax(ps, dim=1)
+            actions = torch.argmax(qs, dim=1)
         return actions

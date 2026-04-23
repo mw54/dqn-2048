@@ -3,7 +3,7 @@ policy_params = {
     "hidden_channels": 1024,
     "num_cells": 16,
     "num_heads": 6,
-    "num_layers": 3,
+    "num_layers": 4,
     "dropout": 0.1
 }
 
