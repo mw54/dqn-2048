@@ -33,15 +33,14 @@ Plays a single game using the trained agent with Q-value visualization.
 ### Interactive Play
 
 ```bash
-python 2048.py
+python environment.py
 ```
 
-Play 2048 manually in the terminal.
+Play the game manually in the terminal.
 
 ## Structure
 
 ```
-2048.py         # Single-board game environment
 environment.py  # Vectorized batch environment
 networks.py     # Transformer-based Q-networks
 agent.py        # DQN agent with target network
@@ -49,6 +48,7 @@ buffer.py       # Prioritized experience replay
 processes.py    # Data collection and optimization loops
 main.py         # Training entry point
 test.py         # Agent evaluation
+terminal.py     # Terminal utilities
 constants.py    # Hyperparameters
 ```
 

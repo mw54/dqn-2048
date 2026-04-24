@@ -1,13 +1,7 @@
 import torch
+import terminal
 
 torch.set_grad_enabled(False)
-
-def action_encode(text:list[str]) -> torch.Tensor:
-    mapping = {"left": 0, "right": 1, "up": 2, "down": 3}
-    encoded = list()
-    for word in text:
-        encoded.append(mapping[word])
-    return torch.tensor(encoded, dtype=torch.int)
 
 class BatchBoards:
     def __init__(self, board_size:int=4, batch_size:int=3, device:str="cpu"):
@@ -16,6 +10,7 @@ class BatchBoards:
         self.device = device
         self.boards = torch.zeros((batch_size, board_size, board_size), dtype=torch.int, device=self.device)
         self.scores = torch.zeros(batch_size, dtype=torch.int, device=self.device)
+        self.rewards = torch.zeros(batch_size, dtype=torch.int, device=self.device)
         self.terminals = torch.ones(batch_size, dtype=torch.bool, device=self.device)
         self.reset()
 
@@ -25,6 +20,7 @@ class BatchBoards:
             "batch_size": self.batch_size,
             "boards": self.boards,
             "scores": self.scores,
+            "rewards": self.rewards,
             "terminals": self.terminals
         }
         torch.save(state_dict, path)
@@ -36,11 +32,13 @@ class BatchBoards:
         
         self.boards = state_dict["boards"].to(self.device)
         self.scores = state_dict["scores"].to(self.device)
+        self.rewards = state_dict["rewards"].to(self.device)
         self.terminals = state_dict["terminals"].to(self.device)
 
     def reset(self):
         self.boards[self.terminals] = 0
         self.scores[self.terminals] = 0
+        self.rewards[self.terminals] = 0
         self._add_tiles(reset=True)
         self._add_tiles(reset=True)
         self.terminals.zero_()
@@ -101,6 +99,7 @@ class BatchBoards:
         rewards = self._update_boards(actions)
         self._add_tiles()
         self.scores += rewards
+        self.rewards = rewards
         return rewards
     
     def __repr__(self) -> str:
@@ -108,7 +107,7 @@ class BatchBoards:
         outputs = ""
         for i in range(self.batch_size):
             outputs += "\n"
-            outputs += f"Board: {i}, Score: {self.scores[i]}\n"
+            outputs += f"Board: {i}, Score: {self.scores[i]}, Reward: {self.rewards[i]}\n"
             outputs += ("+" + "-" * width) * self.board_size + "+\n"
             for j in range(self.board_size):
                 outputs += "|"
@@ -126,14 +125,17 @@ class BatchBoards:
 
 if __name__ == "__main__":
     # Test the environment
-    env = BatchBoards()
-    print(env)
+    ACTIONS = {"left": 0, "right": 1, "up": 2, "down": 3}
+    env = BatchBoards(4, 1)
     
     # Play a few moves
-    while not torch.all(env.terminals):
-        actions = input("Action: ")
-        actions = action_encode([actions] * env.boards.size(0))
-        rewards = env(actions)
-        print(f"Rewards: {rewards.tolist()}")
+    with terminal.Terminal() as terminal:
+        while not torch.all(env.terminals):
+            print(env)
+            actions = input("Action: ")
+            actions = torch.tensor([ACTIONS[actions]], dtype=torch.int, device=env.device)
+            env(actions)
+            terminal.clear()
+        
         print(env)
-
+        terminal.sleep(True)
