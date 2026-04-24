@@ -21,7 +21,7 @@ agent_params = {
 
 environment_params = {
     "board_size": 4,
-    "batch_size": 64,
+    "batch_size": 256,
     "device": "mps"
 }
 
@@ -34,7 +34,7 @@ buffer_params = {
     "device": "cpu"
 }
 
-queue_size = 4
+queue_size = 1
 
 collect_params = {
     "environment_params": environment_params,
@@ -46,8 +46,8 @@ optimize_params = {
     "agent_params": agent_params,
     "buffer_params": buffer_params,
     "total_steps": 1048576,
-    "update_interval": 64,
-    "plot_interval": 1024,
+    "update_interval": 256,
+    "plot_interval": 4096,
     "save_interval": 16384,
     "output_path": "."
 }

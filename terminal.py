@@ -8,7 +8,7 @@ class Terminal:
     def sleep(self, seconds:float|bool=False):
         if type(seconds) is float:
             time.sleep(seconds)
-        elif type(seconds) is bool and seconds:
+        elif type(seconds) is bool:
             input()
         else:
             raise ValueError(f"invalid type for sleep: {type(seconds)}")

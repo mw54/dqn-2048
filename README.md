@@ -18,7 +18,7 @@ python main.py
 ```
 
 Training runs with:
-- 64 parallel environments for data collection
+- 256 parallel environments for data collection
 - 256 batch size for optimization
 - Model checkpoints saved every 16384 steps
 
