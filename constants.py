@@ -1,9 +1,9 @@
 policy_params = {
-    "model_channels": 144,
-    "hidden_channels": 1024,
+    "model_channels": 96,
+    "hidden_channels": 256,
     "num_cells": 16,
-    "num_heads": 6,
-    "num_layers": 4,
+    "num_heads": 4,
+    "num_layers": 3,
     "dropout": 0.1
 }
 

@@ -7,16 +7,15 @@ class Value(nn.Module):
         layer = nn.TransformerEncoderLayer(model_channels, num_heads, 4 * model_channels, dropout=dropout, activation="gelu", batch_first=True, norm_first=True)
         self.transformer = nn.TransformerEncoder(layer, num_layers, enable_nested_tensor=False)
         self.mlp = nn.Sequential(
-            nn.Linear(num_cells * model_channels, hidden_channels),
-            nn.GELU(),
-            nn.Linear(hidden_channels, hidden_channels),
+            nn.LayerNorm(model_channels),
+            nn.Linear(model_channels, hidden_channels),
             nn.GELU(),
             nn.Linear(hidden_channels, output_channels)
         )
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         x = self.transformer(x)
-        x = x.flatten(1, 2)
+        x = x.mean(dim=1)
         x = self.mlp(x)
         return x
     

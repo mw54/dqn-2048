@@ -1,11 +1,11 @@
-# 2048 DQN
+# DQN 2048
 
 Deep Q-Network with transformer architecture to solve the 2048 game.
 
 ## Architecture
 
 - **Agent**: Double Q-learning
-- **Network**: Transformer Encoder (4 layers, 6 heads) + MLP Value Head (3 layers, 1024 hidden channels)
+- **Network**: Transformer Encoder (3 layers, 4 heads) + MLP Value Head (2 layers, 256 hidden channels)
 - **Replay**: Prioritized experience replay (1M capacity)
 - **Training**: Parallel data collection with asynchronous optimization
 
@@ -62,7 +62,7 @@ constants.py    # Hyperparameters
 | Batch size     | 256   |
 | Buffer size    | 1M    |
 | Temperature    | 4.0   |
-| Model channels | 144   |
+| Model channels | 96    |
 
 ## Requirements
 
